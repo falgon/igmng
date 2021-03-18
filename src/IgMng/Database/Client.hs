@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase, OverloadedStrings #-}
 module IgMng.Database.Client (
     newClient
   , insertLog
@@ -22,6 +22,7 @@ import           Database.MySQL.Base
 import           IgMng.Database.Type
 import           IgMng.IgRouter            (IgMngFollower (..), IgMngResp (..))
 import qualified System.IO.Streams         as S
+import           System.Log.Logger         (errorM)
 
 loadConnInfo :: FilePath -> IO (Maybe ConnectInfo)
 loadConnInfo fpath = do
@@ -38,7 +39,9 @@ loadConnInfo fpath = do
           }
 
 newClient :: FilePath -> IO (Maybe MySQLConn)
-newClient fpath = runMaybeT (MaybeT (loadConnInfo fpath) >>= lift . connect)
+newClient fpath = loadConnInfo fpath >>= \case
+    Nothing -> Nothing <$ errorM "igmng.loadConnInfo" "fail to load .env file"
+    Just conn -> Just <$> connect conn
 
 insertLog :: MySQLConn -> LocalTime -> IgMngResp -> IO OK
 insertLog conn localtime resp =

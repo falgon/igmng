@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 651779979970dd64b9a92836f8ee538c2c4b23da6c85d3d2439bb58200db7bc9
+-- hash: a2f3dccee302693c0910e734ba75e87496b52d67647618829795f4563adb2aea
 
 name:           igmng
 version:        0.1.0.0
@@ -39,10 +39,13 @@ library
     , base >=4.7 && <5
     , bytestring
     , extra
+    , hslogger
     , http-conduit
     , io-streams
     , monad-loops
+    , mtl
     , mysql-haskell
+    , natural-transformation
     , text
     , time
     , transformers
@@ -61,11 +64,15 @@ executable igmng
     , base >=4.7 && <5
     , bytestring
     , extra
+    , hslogger
     , http-conduit
     , igmng
     , io-streams
     , monad-loops
+    , mtl
     , mysql-haskell
+    , natural-transformation
+    , optparse-applicative
     , text
     , time
     , transformers
@@ -85,11 +92,14 @@ test-suite igmng-test
     , base >=4.7 && <5
     , bytestring
     , extra
+    , hslogger
     , http-conduit
     , igmng
     , io-streams
     , monad-loops
+    , mtl
     , mysql-haskell
+    , natural-transformation
     , text
     , time
     , transformers

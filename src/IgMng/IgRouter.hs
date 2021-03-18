@@ -6,9 +6,11 @@ module IgMng.IgRouter (
   , requestFollowers
 ) where
 
+import           Control.Monad        (when)
 import           Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import           Data.Functor         ((<&>))
+import           Data.Maybe           (isNothing)
 import qualified Data.Text            as T
 import qualified Data.Text.Encoding   as T
 import           Data.Word            (Word64)
@@ -17,6 +19,7 @@ import           GHC.Generics         (Generic)
 import           IgMng.Database.Type  (MySQLType (..))
 import           Network.HTTP.Simple  (getResponseBody, httpLbs, parseRequest,
                                        setRequestPort)
+import           System.Log.Logger    (errorM)
 
 data IgMngFollower = IgMngFollower {
     userId :: Word64
@@ -62,6 +65,9 @@ instance MySQLType IgMngResp where
     toMySQLV = MySQLText . T.decodeUtf8 . BL.toStrict . encode
 
 requestFollowers :: String -> Int -> IO (Maybe IgMngResp)
-requestFollowers host port = parseRequest ("http://" <> host <> "/follow")
-    >>= httpLbs . setRequestPort port
-    <&> decode . getResponseBody
+requestFollowers host port = do
+    resp <- parseRequest ("http://" <> host <> "/follow")
+        >>= httpLbs . setRequestPort port
+        <&> decode . getResponseBody
+    when (isNothing resp) $ errorM "igmng.requestFollowers" "json parse error"
+    pure resp

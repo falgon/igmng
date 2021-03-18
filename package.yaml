@@ -32,6 +32,9 @@ dependencies:
 - io-streams
 - transformers
 - utf8-string
+- natural-transformation
+- hslogger
+- mtl
 
 library:
   source-dirs: src
@@ -46,6 +49,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - igmng
+    - optparse-applicative
 
 tests:
   igmng-test:
