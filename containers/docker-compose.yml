@@ -1,0 +1,30 @@
+version: '3.7'
+services:
+  router:
+    image: roki/igmng-web-router:1.0.0
+    container_name: roki-igmng-router
+    tty: true
+    volumes:
+      - "../igrouter:/home/igmng/bin"
+    ports:
+      - "3000:3000"
+    working_dir: /home/igmng/bin
+    build:
+      context: ../
+      dockerfile: ./containers/igrouter_webserver/Dockerfile
+    command: /bin/bash -c 'make run'
+  db:
+    image: mysql:8.0
+    tty: true
+    container_name: roki-igmng-mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./db/init:/docker-entrypoint-initdb.d
+      - ./db/data:/var/lib/mysql
+      - ./db/conf:/etc/mysql/conf.d
+    environment:
+      MYSQL_DATABASE: $MYSQL_DATABASE
+      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+      MYSQL_USER: $MYSQL_USER
+      MYSQL_PASSWORD: $MYSQL_PASSWORD

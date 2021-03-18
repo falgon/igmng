@@ -1,0 +1,8 @@
+.stack-work/
+*~
+profile.jb
+__pycache__
+*.pyc
+credentials.toml
+containers/db/data
+.env

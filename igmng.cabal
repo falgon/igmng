@@ -1,0 +1,97 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 651779979970dd64b9a92836f8ee538c2c4b23da6c85d3d2439bb58200db7bc9
+
+name:           igmng
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/igmng#readme>
+homepage:       https://github.com/githubuser/igmng#readme
+bug-reports:    https://github.com/githubuser/igmng/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2021 Author name here
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/igmng
+
+library
+  exposed-modules:
+      IgMng.Database.Client
+      IgMng.Database.Type
+      IgMng.IgRouter
+  other-modules:
+      Paths_igmng
+  hs-source-dirs:
+      src
+  build-depends:
+      aeson
+    , base >=4.7 && <5
+    , bytestring
+    , extra
+    , http-conduit
+    , io-streams
+    , monad-loops
+    , mysql-haskell
+    , text
+    , time
+    , transformers
+    , utf8-string
+  default-language: Haskell2010
+
+executable igmng
+  main-is: Main.hs
+  other-modules:
+      Paths_igmng
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson
+    , base >=4.7 && <5
+    , bytestring
+    , extra
+    , http-conduit
+    , igmng
+    , io-streams
+    , monad-loops
+    , mysql-haskell
+    , text
+    , time
+    , transformers
+    , utf8-string
+  default-language: Haskell2010
+
+test-suite igmng-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_igmng
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson
+    , base >=4.7 && <5
+    , bytestring
+    , extra
+    , http-conduit
+    , igmng
+    , io-streams
+    , monad-loops
+    , mysql-haskell
+    , text
+    , time
+    , transformers
+    , utf8-string
+  default-language: Haskell2010

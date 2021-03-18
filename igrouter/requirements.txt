@@ -1,0 +1,8 @@
+instaloader==4.6.2
+oathtool==2.3.0
+toml==0.10.2
+Flask==1.1.2
+typing==3.7.4.3
+gevent==21.1.2
+flask-log-request-id==0.10.1
+joblib==1.0.1
