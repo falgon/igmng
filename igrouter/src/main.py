@@ -55,7 +55,7 @@ def get_profile() -> Profile:
 profile = get_profile()
 
 
-@app.route("/follow", methods=["GET"])
+@app.route("/followers", methods=["GET"])
 def get_followers():
     logger.setLevel(logging.INFO)
     logger.info("Start fetching data")

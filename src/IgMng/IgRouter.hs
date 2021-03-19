@@ -66,7 +66,7 @@ instance MySQLType IgMngResp where
 
 requestFollowers :: String -> Int -> IO (Maybe IgMngResp)
 requestFollowers host port = do
-    resp <- parseRequest ("http://" <> host <> "/follow")
+    resp <- parseRequest ("http://" <> host <> "/followers")
         >>= httpLbs . setRequestPort port
         <&> decode . getResponseBody
     when (isNothing resp) $ errorM "igmng.requestFollowers" "json parse error"
