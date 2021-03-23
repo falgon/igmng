@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e5122d318627c680a129a952cedb2fa279ebe5319cbc05ec290576bf00d183fc
+-- hash: 5c647f4ed5f3a9de642303bb4f99c5fb8f35c8d4775f4734f86d3c5ab35335f6
 
 name:           igmng
 version:        0.1.0.0
@@ -32,6 +32,7 @@ library
       IgMng.IgRouter
       IgMng.IO
       IgMng.LineNotify
+      IgMng.Utils
   other-modules:
       Paths_igmng
   hs-source-dirs:

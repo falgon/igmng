@@ -30,7 +30,32 @@ The simple tool that is the [Instagram](https://www.instagram.com/) followers tr
 
 ## Usage
 
+```bash
+$ stack exec igmng -- --help
+Usage: igmng [-n|--no-fetch] [--enable-line-notify]
+             [-f|--env-file-path <filepath>] [--limit <delete log number>]
+             [--year-ago yyyy] COMMAND
+  instagram followers logger
+
+Available options:
+  -h,--help                Show this help text
+  -n,--no-fetch            Does not fetch followers status
+  --enable-line-notify     enable line notify
+  -f,--env-file-path <filepath>
+                           The .env file path
+  --limit <delete log number>
+                           the number of deleting
+  --year-ago yyyy          the number of delete year
+
+Available commands:
+  check                    fetch and check latest diff
+  fetch                    fetch followers status
+  delete                   delete logs
 ```
+
+simple run
+
+```bash
 $ git clone git@github.com:falgon/igmng.git
 $ cd igmng
 $ cat > ./containers/.env <<EOS

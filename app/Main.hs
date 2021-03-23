@@ -6,15 +6,9 @@ import           Control.Monad             (MonadPlus (..), unless, when)
 import           Control.Monad.Extra       (whenM)
 import           Control.Monad.Trans       (lift)
 import           Control.Monad.Trans.Maybe (MaybeT (..), runMaybeT)
-import           Control.Natural           (type (~>))
 import           Data.Algorithm.Diff       (Diff (..), getDiffBy)
-import           Data.List                 (partition)
 import           Data.Maybe                (fromJust, isJust)
 import qualified Data.Text.IO              as T
-import           Data.Time                 (LocalTime (..), TimeOfDay (..),
-                                            UTCTime (..), getCurrentTime,
-                                            getCurrentTimeZone, utcToLocalTime)
-import           Data.Time.Calendar        (addDays)
 import           Data.Tuple.Extra          (both)
 import           Data.Word
 import           Database.MySQL.Base       (MySQLConn, OK (..))
@@ -22,6 +16,7 @@ import           IgMng.Database.Client
 import           IgMng.IgRouter
 import           IgMng.IO                  (putStrLnErr)
 import           IgMng.LineNotify
+import           IgMng.Utils
 import qualified Options.Applicative       as OA
 import           System.Exit               (exitFailure)
 import           Text.Read                 (readMaybe)
@@ -116,30 +111,10 @@ registerLog conn = isJust <$> runMaybeT registerLog'
     where
         registerLog' = do
             rqRes <- MaybeT $ requestFollowers "localhost" 3000
-            gotTime <- lift (utcToLocalTime <$> getCurrentTimeZone <*> getCurrentTime)
+            gotTime <- lift getCurrentLocalTime
             oar <- lift (okAffectedRows <$> insertLog conn gotTime rqRes)
             when (oar /= 1) $
                 lift (putStrLnErr "igmng.registerLog: failed to register followers") >> mzero
-
-currentTimeYearAgo :: Word64 -> IO LocalTime
-currentTimeYearAgo y = do
-    gotTime <- utcToLocalTime <$> getCurrentTimeZone <*> getCurrentTime
-    pure gotTime {
-          localDay = addDays (negate (fromIntegral (365 * y) :: Integer)) (localDay gotTime)
-        , localTimeOfDay = (localTimeOfDay gotTime) { todSec = 0 }
-        }
-
-isSecond :: Diff a -> Bool
-isSecond (Second _) = True
-isSecond _          = False
-
-isBoth :: Diff a -> Bool
-isBoth (Both _ _) = True
-isBoth _          = False
-
-fromSecond :: Diff a -> a
-fromSecond (Second x) = x
-fromSecond _          = error "fromSecond: not second"
 
 main' :: Opts -> MySQLConn -> IO ()
 main' opts conn = case optCmd opts of
