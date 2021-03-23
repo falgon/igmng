@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: faee8313b96d226ff81ff813a1cb4190ddf0c5c6214cd93a2d14e9977251185d
+-- hash: e5122d318627c680a129a952cedb2fa279ebe5319cbc05ec290576bf00d183fc
 
 name:           igmng
 version:        0.1.0.0
@@ -31,12 +31,14 @@ library
       IgMng.Database.Type
       IgMng.IgRouter
       IgMng.IO
+      IgMng.LineNotify
   other-modules:
       Paths_igmng
   hs-source-dirs:
       src
   build-depends:
-      aeson
+      Diff
+    , aeson
     , base >=4.7 && <5
     , bytestring
     , extra
@@ -60,7 +62,8 @@ executable igmng
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      aeson
+      Diff
+    , aeson
     , base >=4.7 && <5
     , bytestring
     , extra
@@ -87,7 +90,8 @@ test-suite igmng-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      aeson
+      Diff
+    , aeson
     , base >=4.7 && <5
     , bytestring
     , extra

@@ -7,16 +7,21 @@ import           Control.Monad.Extra       (whenM)
 import           Control.Monad.Trans       (lift)
 import           Control.Monad.Trans.Maybe (MaybeT (..), runMaybeT)
 import           Control.Natural           (type (~>))
+import           Data.Algorithm.Diff       (Diff (..), getDiffBy)
+import           Data.List                 (partition)
 import           Data.Maybe                (fromJust, isJust)
+import qualified Data.Text.IO              as T
 import           Data.Time                 (LocalTime (..), TimeOfDay (..),
                                             UTCTime (..), getCurrentTime,
                                             getCurrentTimeZone, utcToLocalTime)
 import           Data.Time.Calendar        (addDays)
+import           Data.Tuple.Extra          (both)
 import           Data.Word
 import           Database.MySQL.Base       (MySQLConn, OK (..))
 import           IgMng.Database.Client
 import           IgMng.IgRouter
 import           IgMng.IO                  (putStrLnErr)
+import           IgMng.LineNotify
 import qualified Options.Applicative       as OA
 import           System.Exit               (exitFailure)
 import           Text.Read                 (readMaybe)
@@ -26,11 +31,12 @@ data Cmd = CmdCheck
     | CmdDelete
 
 data Opts = Opts
-    { optNoFetch     :: !Bool
-    , optEnvFilePath :: String
-    , optLimitNum    :: Word64
-    , optYearAgo     :: Maybe Word64
-    , optCmd         :: Cmd
+    { optNoFetch          :: !Bool
+    , optEnableLineNotify :: !Bool
+    , optEnvFilePath      :: String
+    , optLimitNum         :: Word64
+    , optYearAgo          :: Maybe Word64
+    , optCmd              :: Cmd
     }
 
 checkCmd :: OA.Mod OA.CommandFields Cmd
@@ -53,6 +59,12 @@ noFetch = OA.switch $ mconcat [
     OA.long "no-fetch"
   , OA.short 'n'
   , OA.help "Does not fetch followers status"
+  ]
+
+enableLine :: OA.Parser Bool
+enableLine = OA.switch $ mconcat [
+    OA.long "enable-line-notify"
+  , OA.help "enable line notify"
   ]
 
 envFilePath :: OA.Parser String
@@ -83,6 +95,7 @@ yearAgo = OA.option (OA.maybeReader (Just . (readMaybe :: String -> Maybe Word64
 programOptions :: OA.Parser Opts
 programOptions = Opts
     <$> noFetch
+    <*> enableLine
     <*> envFilePath
     <*> limitNum
     <*> yearAgo
@@ -116,17 +129,34 @@ currentTimeYearAgo y = do
         , localTimeOfDay = (localTimeOfDay gotTime) { todSec = 0 }
         }
 
+isSecond :: Diff a -> Bool
+isSecond (Second _) = True
+isSecond _          = False
+
+isBoth :: Diff a -> Bool
+isBoth (Both _ _) = True
+isBoth _          = False
+
+fromSecond :: Diff a -> a
+fromSecond (Second x) = x
+fromSecond _          = error "fromSecond: not second"
+
 main' :: Opts -> MySQLConn -> IO ()
 main' opts conn = case optCmd opts of
     CmdCheck
         | optNoFetch opts -> selectLatestDiffLog conn >>= \case
             Nothing -> putStrLn "igmng.main': There is no comparison target"
-            Just latest -> if uncurry (==) latest then putStrLn "igmng.main': no update" else
-                putStrLn "igmng.main': update found"
+            Just latest ->
+                let onlySecond = map (name . fromSecond)
+                        $ filter isSecond
+                        $ uncurry (getDiffBy (flip (.) userId . (==) . userId))
+                        $ both followers latest
+                in if null onlySecond then putStrLn "igmng.main': no unfollow" else
+                    putStrLn "igmng.main': unfollow found"
+                        >> mapM_ T.putStrLn onlySecond
+                        >> when (optEnableLineNotify opts) (notifyLine onlySecond)
         | otherwise -> whenM (registerLog conn) $ main' (opts { optNoFetch = True }) conn
-    CmdFetch
-        | optNoFetch opts -> pure ()
-        | otherwise -> whenM (registerLog conn) $ putStrLn "igmng.main': fetch complete"
+    CmdFetch -> unless (optNoFetch opts) $ whenM (registerLog conn) $ putStrLn "igmng.main': fetch complete"
     CmdDelete
         | isJust (optYearAgo opts) -> currentTimeYearAgo (fromJust $ optYearAgo opts)
             >>= deleteLogWithYearAgo conn (optLimitNum opts)

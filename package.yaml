@@ -34,6 +34,7 @@ dependencies:
 - utf8-string
 - natural-transformation
 - mtl
+- Diff
 
 library:
   source-dirs: src
