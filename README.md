@@ -46,6 +46,7 @@ oath_key = "oath_key" # when you use two-factor code, it will be used by authent
 user_id = "user_id"
 password = "password"
 EOS
-$ docker-compose -f ./containers/docker-compose.yml up -d
+$ cd ./containers
+$ docker-compose up -d && cd ../
 $ stack exec igmng -- check
 ```

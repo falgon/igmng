@@ -17,9 +17,9 @@ import           Data.Word            (Word64)
 import           Database.MySQL.Base  (MySQLValue (..))
 import           GHC.Generics         (Generic)
 import           IgMng.Database.Type  (MySQLType (..))
+import           IgMng.IO             (putStrLnErr)
 import           Network.HTTP.Simple  (getResponseBody, httpLbs, parseRequest,
                                        setRequestPort)
-import           System.Log.Logger    (errorM)
 
 data IgMngFollower = IgMngFollower {
     userId :: Word64
@@ -69,5 +69,5 @@ requestFollowers host port = do
     resp <- parseRequest ("http://" <> host <> "/followers")
         >>= httpLbs . setRequestPort port
         <&> decode . getResponseBody
-    when (isNothing resp) $ errorM "igmng.requestFollowers" "json parse error"
+    when (isNothing resp) $ putStrLnErr "igmng.requestFollowers: json parse error"
     pure resp

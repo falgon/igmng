@@ -2,6 +2,8 @@
 module IgMng.Database.Client (
     newClient
   , insertLog
+  , deleteLog
+  , deleteLogWithYearAgo
   , selectLatestDiffLog
 ) where
 
@@ -21,8 +23,8 @@ import           Data.Word                 (Word64)
 import           Database.MySQL.Base
 import           IgMng.Database.Type
 import           IgMng.IgRouter            (IgMngFollower (..), IgMngResp (..))
+import           IgMng.IO                  (putStrLnErr)
 import qualified System.IO.Streams         as S
-import           System.Log.Logger         (errorM)
 
 loadConnInfo :: FilePath -> IO (Maybe ConnectInfo)
 loadConnInfo fpath = do
@@ -40,7 +42,7 @@ loadConnInfo fpath = do
 
 newClient :: FilePath -> IO (Maybe MySQLConn)
 newClient fpath = loadConnInfo fpath >>= \case
-    Nothing -> Nothing <$ errorM "igmng.loadConnInfo" "fail to load .env file"
+    Nothing -> Nothing <$ putStrLnErr "igmng.loadConnInfo: fail to load .env file"
     Just conn -> Just <$> connect conn
 
 insertLog :: MySQLConn -> LocalTime -> IgMngResp -> IO OK
@@ -69,6 +71,16 @@ selectLatestDiffLog conn = do
                 Right jsonSt -> pure $ Just $
                     IgMngResp (fromIntegral followeesN) (fromIntegral followersN) jsonSt
     -- expect two results
-    if length igmngs /= 2 then pure Nothing else pure $ Just (igmngs !! 0, igmngs !! 1)
+    if length igmngs /= 2 then pure Nothing else pure $ Just (head igmngs, igmngs !! 1)
     where
         q = "SELECT * FROM follow_log ORDER BY logged_date DESC LIMIT 2"
+
+deleteLog :: MySQLConn -> Word64 -> IO OK
+deleteLog conn ln = execute conn q [ toMySQLV ln ]
+    where
+        q = "DELETE FROM follow_log LIMIT ?"
+
+deleteLogWithYearAgo :: MySQLConn -> Word64 -> LocalTime -> IO OK
+deleteLogWithYearAgo conn ln ld = execute conn q [ toMySQLV ld, toMySQLV ln ]
+    where
+        q = "DELETE FROM follow_log WHERE logged_date <= ? ORDER BY logged_date LIMIT ?"

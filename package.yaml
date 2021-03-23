@@ -33,7 +33,6 @@ dependencies:
 - transformers
 - utf8-string
 - natural-transformation
-- hslogger
 - mtl
 
 library:

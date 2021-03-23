@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a2f3dccee302693c0910e734ba75e87496b52d67647618829795f4563adb2aea
+-- hash: faee8313b96d226ff81ff813a1cb4190ddf0c5c6214cd93a2d14e9977251185d
 
 name:           igmng
 version:        0.1.0.0
@@ -30,6 +30,7 @@ library
       IgMng.Database.Client
       IgMng.Database.Type
       IgMng.IgRouter
+      IgMng.IO
   other-modules:
       Paths_igmng
   hs-source-dirs:
@@ -39,7 +40,6 @@ library
     , base >=4.7 && <5
     , bytestring
     , extra
-    , hslogger
     , http-conduit
     , io-streams
     , monad-loops
@@ -64,7 +64,6 @@ executable igmng
     , base >=4.7 && <5
     , bytestring
     , extra
-    , hslogger
     , http-conduit
     , igmng
     , io-streams
@@ -92,7 +91,6 @@ test-suite igmng-test
     , base >=4.7 && <5
     , bytestring
     , extra
-    , hslogger
     , http-conduit
     , igmng
     , io-streams
