@@ -3,18 +3,18 @@
 The simple tool that is the [Instagram](https://www.instagram.com/) followers tracker
 
 ```
-┌───────────────┐
-│               │
-│               │
-│   Instagram   │
-│     (IG)      │
-│               │
-└───────▲───────┘
-        │
-        │ Login authentication
-        │ Get follower infomation with IG API
-        │
-┌───────▼───────┐              ┌────────────────┐              ┌────────────────┐
+┌───────────────┐              ┌───────────────┐
+│               │              │               │
+│               │              │               │
+│   Instagram   │              │  LINE Notify  │
+│     (IG)      │              │               │
+│               │              │               │
+└───────▲───────┘              └───────▲───────┘
+        │                              │
+        │ Login authentication         │
+        │ Get follower infomation      │
+        │ with IG API                  │
+┌───────▼───────┐              ┌───────▼────────┐              ┌────────────────┐
 │               │  port 3000   │                │              │                │
 │               │  http GET    │                │              │                │
 │               │  /followers  │                │              │                │
@@ -32,8 +32,8 @@ The simple tool that is the [Instagram](https://www.instagram.com/) followers tr
 
 ```bash
 $ stack exec igmng -- --help
-Usage: igmng [-n|--no-fetch] [--enable-line-notify]
-             [-f|--env-file-path <filepath>] [--limit <delete log number>]
+Usage: igmng [-n|--no-fetch] [--enable-line-notify] [--env-file-path <filepath>]
+             [--credentials-file-path <filepath>] [--limit <delete log number>]
              [--year-ago yyyy] COMMAND
   instagram followers logger
 
@@ -41,8 +41,10 @@ Available options:
   -h,--help                Show this help text
   -n,--no-fetch            Does not fetch followers status
   --enable-line-notify     enable line notify
-  -f,--env-file-path <filepath>
+  --env-file-path <filepath>
                            The .env file path
+  --credentials-file-path <filepath>
+                           credentials.toml file
   --limit <delete log number>
                            the number of deleting
   --year-ago yyyy          the number of delete year
@@ -70,8 +72,17 @@ $ cat > ~/.igmng/credentials.toml <<EOS
 oath_key = "oath_key" # when you use two-factor code, it will be used by authentication.
 user_id = "user_id"
 password = "password"
+
+[line]
+oauth_key = "line notify api oauth key"
 EOS
 $ cd ./containers
 $ docker-compose up -d && cd ../
-$ stack exec igmng -- check
+$ stack exec igmng -- fetch
+$ stack exec igmng -- check --enable-line-notify
 ```
+
+When unfollow is detected,
+it will be notified using [Line Notify](https://notify-bot.line.me/).
+
+![LINE_capture](https://user-images.githubusercontent.com/1241783/112335577-b4a20c00-8cff-11eb-947f-31b9ba4a35af.jpg)

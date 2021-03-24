@@ -3,7 +3,7 @@
 module Main where
 
 import           Control.Monad             (MonadPlus (..), unless, when)
-import           Control.Monad.Extra       (whenM)
+import           Control.Monad.Extra       (unlessM, whenM)
 import           Control.Monad.Trans       (lift)
 import           Control.Monad.Trans.Maybe (MaybeT (..), runMaybeT)
 import           Data.Algorithm.Diff       (Diff (..), getDiffBy)
@@ -18,7 +18,9 @@ import           IgMng.IO                  (putStrLnErr)
 import           IgMng.LineNotify
 import           IgMng.Utils
 import qualified Options.Applicative       as OA
+import           System.Directory          (getHomeDirectory)
 import           System.Exit               (exitFailure)
+import           System.FilePath           ((</>))
 import           Text.Read                 (readMaybe)
 
 data Cmd = CmdCheck
@@ -26,12 +28,13 @@ data Cmd = CmdCheck
     | CmdDelete
 
 data Opts = Opts
-    { optNoFetch          :: !Bool
-    , optEnableLineNotify :: !Bool
-    , optEnvFilePath      :: String
-    , optLimitNum         :: Word64
-    , optYearAgo          :: Maybe Word64
-    , optCmd              :: Cmd
+    { optNoFetch             :: !Bool
+    , optEnableLineNotify    :: !Bool
+    , optEnvFilePath         :: FilePath
+    , optCredentialsFilePath :: FilePath
+    , optLimitNum            :: Word64
+    , optYearAgo             :: Maybe Word64
+    , optCmd                 :: Cmd
     }
 
 checkCmd :: OA.Mod OA.CommandFields Cmd
@@ -62,12 +65,19 @@ enableLine = OA.switch $ mconcat [
   , OA.help "enable line notify"
   ]
 
-envFilePath :: OA.Parser String
+envFilePath :: OA.Parser FilePath
 envFilePath = OA.option OA.str $ mconcat [
     OA.long "env-file-path"
-  , OA.short 'f'
   , OA.value "./containers/.env"
   , OA.help "The .env file path"
+  , OA.metavar "<filepath>"
+  ]
+
+credentialsFilePath :: FilePath -> OA.Parser FilePath
+credentialsFilePath homeDir = OA.option OA.str $ mconcat [
+    OA.long "credentials-file-path"
+  , OA.value $ homeDir </> ".igmng" </> "credentials.toml"
+  , OA.help "credentials.toml file"
   , OA.metavar "<filepath>"
   ]
 
@@ -87,11 +97,12 @@ yearAgo = OA.option (OA.maybeReader (Just . (readMaybe :: String -> Maybe Word64
   , OA.metavar "yyyy"
   ]
 
-programOptions :: OA.Parser Opts
-programOptions = Opts
+programOptions :: FilePath -> OA.Parser Opts
+programOptions homeDir = Opts
     <$> noFetch
     <*> enableLine
     <*> envFilePath
+    <*> credentialsFilePath homeDir
     <*> limitNum
     <*> yearAgo
     <*> OA.hsubparser (mconcat [
@@ -100,8 +111,8 @@ programOptions = Opts
       , deleteCmd
       ])
 
-optsParser :: OA.ParserInfo Opts
-optsParser = OA.info (OA.helper <*> programOptions) $ mconcat [
+optsParser :: FilePath -> OA.ParserInfo Opts
+optsParser homeDir = OA.info (OA.helper <*> programOptions homeDir) $ mconcat [
     OA.fullDesc
   , OA.progDesc "instagram followers logger"
   ]
@@ -129,7 +140,8 @@ main' opts conn = case optCmd opts of
                 in if null onlySecond then putStrLn "igmng.main': no unfollow" else
                     putStrLn "igmng.main': unfollow found"
                         >> mapM_ T.putStrLn onlySecond
-                        >> when (optEnableLineNotify opts) (notifyLine onlySecond)
+                        >> when (optEnableLineNotify opts)
+                            (unlessM (notifyLine (optCredentialsFilePath opts) onlySecond) exitFailure)
         | otherwise -> whenM (registerLog conn) $ main' (opts { optNoFetch = True }) conn
     CmdFetch -> unless (optNoFetch opts) $ whenM (registerLog conn) $ putStrLn "igmng.main': fetch complete"
     CmdDelete
@@ -141,7 +153,7 @@ main' opts conn = case optCmd opts of
 
 main :: IO ()
 main = do
-    opts <- OA.execParser optsParser
+    opts <- OA.execParser . optsParser =<< getHomeDirectory
     newClient (optEnvFilePath opts)
         >>= maybe exitFailure pure
         >>= main' opts

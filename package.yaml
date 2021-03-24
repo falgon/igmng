@@ -35,6 +35,12 @@ dependencies:
 - natural-transformation
 - mtl
 - Diff
+- case-insensitive
+- htoml
+- directory
+- htoml
+- filepath
+- unordered-containers
 
 library:
   source-dirs: src

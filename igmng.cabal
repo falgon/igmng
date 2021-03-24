@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5c647f4ed5f3a9de642303bb4f99c5fb8f35c8d4775f4734f86d3c5ab35335f6
+-- hash: 7ce8ae19ea272464aa7b3db6cf03886dcf7a184c71929caf8c975a77e50395ba
 
 name:           igmng
 version:        0.1.0.0
@@ -32,6 +32,7 @@ library
       IgMng.IgRouter
       IgMng.IO
       IgMng.LineNotify
+      IgMng.Network
       IgMng.Utils
   other-modules:
       Paths_igmng
@@ -42,7 +43,11 @@ library
     , aeson
     , base >=4.7 && <5
     , bytestring
+    , case-insensitive
+    , directory
     , extra
+    , filepath
+    , htoml
     , http-conduit
     , io-streams
     , monad-loops
@@ -52,6 +57,7 @@ library
     , text
     , time
     , transformers
+    , unordered-containers
     , utf8-string
   default-language: Haskell2010
 
@@ -67,7 +73,11 @@ executable igmng
     , aeson
     , base >=4.7 && <5
     , bytestring
+    , case-insensitive
+    , directory
     , extra
+    , filepath
+    , htoml
     , http-conduit
     , igmng
     , io-streams
@@ -79,6 +89,7 @@ executable igmng
     , text
     , time
     , transformers
+    , unordered-containers
     , utf8-string
   default-language: Haskell2010
 
@@ -95,7 +106,11 @@ test-suite igmng-test
     , aeson
     , base >=4.7 && <5
     , bytestring
+    , case-insensitive
+    , directory
     , extra
+    , filepath
+    , htoml
     , http-conduit
     , igmng
     , io-streams
@@ -106,5 +121,6 @@ test-suite igmng-test
     , text
     , time
     , transformers
+    , unordered-containers
     , utf8-string
   default-language: Haskell2010
