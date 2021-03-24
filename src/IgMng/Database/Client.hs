@@ -49,7 +49,7 @@ insertLog :: MySQLConn -> LocalTime -> IgMngResp -> IO OK
 insertLog conn localtime resp =
     execute conn q
         [ toMySQLV $ followeesNum resp
-        , toMySQLV $ followersNum resp
+        , toMySQLV $ length $ followers resp
         , toMySQLV localtime
         , toMySQLV $ followers resp
         ]

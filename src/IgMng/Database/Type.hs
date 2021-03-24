@@ -16,5 +16,8 @@ instance MySQLType T.Text where
 instance MySQLType Word64 where
     toMySQLV = MySQLInt64U
 
+instance MySQLType Int where
+    toMySQLV = toMySQLV . (fromIntegral :: Int -> Word64)
+
 instance MySQLType LocalTime where
     toMySQLV = MySQLDateTime
