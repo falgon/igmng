@@ -17,6 +17,7 @@ import           IgMng.IgRouter
 import           IgMng.IO                  (putStrLnErr)
 import           IgMng.LineNotify
 import           IgMng.Utils
+import           Network.Socket            (HostName)
 import qualified Options.Applicative       as OA
 import           System.Directory          (getHomeDirectory)
 import           System.Exit               (exitFailure)
@@ -28,13 +29,15 @@ data Cmd = CmdCheck
     | CmdDelete
 
 data Opts = Opts
-    { optNoFetch             :: !Bool
-    , optEnableLineNotify    :: !Bool
-    , optEnvFilePath         :: FilePath
-    , optCredentialsFilePath :: FilePath
-    , optLimitNum            :: Word64
-    , optYearAgo             :: Maybe Word64
-    , optCmd                 :: Cmd
+    { optNoFetch               :: !Bool
+    , optEnableLineNotify      :: !Bool
+    , optEnvFilePath           :: FilePath
+    , optCredentialsFilePath   :: FilePath
+    , optLimitNum              :: Word64
+    , optIgMngRouterHostName   :: HostName
+    , optIgMngDatabaseHostName :: HostName
+    , optYearAgo               :: Maybe Word64
+    , optCmd                   :: Cmd
     }
 
 checkCmd :: OA.Mod OA.CommandFields Cmd
@@ -89,6 +92,20 @@ limitNum = OA.option OA.auto $ mconcat [
   , OA.metavar "<delete log number>"
   ]
 
+igMngRouterHostName :: OA.Parser HostName
+igMngRouterHostName = OA.option OA.str $ mconcat [
+    OA.long "router-hostname"
+  , OA.value "localhost"
+  , OA.metavar "<hostname>"
+  ]
+
+igMngDatabaseHostName :: OA.Parser HostName
+igMngDatabaseHostName = OA.option OA.str $ mconcat [
+    OA.long "db-hostname"
+  , OA.value "localhost"
+  , OA.metavar "<hostname>"
+  ]
+
 yearAgo :: OA.Parser (Maybe Word64)
 yearAgo = OA.option (OA.maybeReader (Just . (readMaybe :: String -> Maybe Word64))) $ mconcat [
     OA.long "year-ago"
@@ -104,6 +121,8 @@ programOptions homeDir = Opts
     <*> envFilePath
     <*> credentialsFilePath homeDir
     <*> limitNum
+    <*> igMngRouterHostName
+    <*> igMngDatabaseHostName
     <*> yearAgo
     <*> OA.hsubparser (mconcat [
         checkCmd
@@ -117,11 +136,11 @@ optsParser homeDir = OA.info (OA.helper <*> programOptions homeDir) $ mconcat [
   , OA.progDesc "instagram followers logger"
   ]
 
-registerLog :: MySQLConn -> IO Bool
-registerLog conn = isJust <$> runMaybeT registerLog'
+registerLog :: MySQLConn -> String -> IO Bool
+registerLog conn host = isJust <$> runMaybeT registerLog'
     where
         registerLog' = do
-            rqRes <- MaybeT $ requestFollowers "localhost" 3000
+            rqRes <- MaybeT $ requestFollowers host 3000
             gotTime <- lift getCurrentLocalTime
             oar <- lift (okAffectedRows <$> insertLog conn gotTime rqRes)
             when (oar /= 1) $
@@ -142,8 +161,10 @@ main' opts conn = case optCmd opts of
                         >> mapM_ T.putStrLn onlySecond
                         >> when (optEnableLineNotify opts)
                             (unlessM (notifyLine (optCredentialsFilePath opts) onlySecond) exitFailure)
-        | otherwise -> whenM (registerLog conn) $ main' (opts { optNoFetch = True }) conn
-    CmdFetch -> unless (optNoFetch opts) $ whenM (registerLog conn) $ putStrLn "igmng.main': fetch complete"
+        | otherwise -> whenM (registerLog conn $ optIgMngRouterHostName opts) $ main' (opts { optNoFetch = True }) conn
+    CmdFetch -> unless (optNoFetch opts)
+        $ whenM (registerLog conn $ optIgMngRouterHostName opts)
+        $ putStrLn "igmng.main': fetch complete"
     CmdDelete
         | isJust (optYearAgo opts) -> currentTimeYearAgo (fromJust $ optYearAgo opts)
             >>= deleteLogWithYearAgo conn (optLimitNum opts)
@@ -154,6 +175,6 @@ main' opts conn = case optCmd opts of
 main :: IO ()
 main = do
     opts <- OA.execParser . optsParser =<< getHomeDirectory
-    newClient (optEnvFilePath opts)
+    newClient (optEnvFilePath opts) (optIgMngDatabaseHostName opts)
         >>= maybe exitFailure pure
         >>= main' opts

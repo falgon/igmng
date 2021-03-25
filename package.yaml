@@ -41,6 +41,7 @@ dependencies:
 - htoml
 - filepath
 - unordered-containers
+- network
 
 library:
   source-dirs: src

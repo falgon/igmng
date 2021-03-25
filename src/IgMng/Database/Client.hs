@@ -24,10 +24,11 @@ import           Database.MySQL.Base
 import           IgMng.Database.Type
 import           IgMng.IgRouter            (IgMngFollower (..), IgMngResp (..))
 import           IgMng.IO                  (putStrLnErr)
+import           Network.Socket            (HostName)
 import qualified System.IO.Streams         as S
 
-loadConnInfo :: FilePath -> IO (Maybe ConnectInfo)
-loadConnInfo fpath = do
+loadConnInfo :: FilePath -> HostName -> IO (Maybe ConnectInfo)
+loadConnInfo fpath hostname = do
     env <- map (both (filter (not . isSpace)) . second tail . break (=='=')) . lines
         <$> readFile fpath
     pure $ do
@@ -35,13 +36,14 @@ loadConnInfo fpath = do
         mus <- lookup "MYSQL_USER" env
         mpw <- lookup "MYSQL_PASSWORD" env
         pure $ defaultConnectInfo {
-            ciDatabase = BSU.fromString mdb
+            ciHost = hostname
+          , ciDatabase = BSU.fromString mdb
           , ciUser = BSU.fromString mus
           , ciPassword = BSU.fromString mpw
           }
 
-newClient :: FilePath -> IO (Maybe MySQLConn)
-newClient fpath = loadConnInfo fpath >>= \case
+newClient :: FilePath -> HostName -> IO (Maybe MySQLConn)
+newClient fpath hostname = loadConnInfo fpath hostname >>= \case
     Nothing -> Nothing <$ putStrLnErr "igmng.loadConnInfo: fail to load .env file"
     Just conn -> Just <$> connect conn
 

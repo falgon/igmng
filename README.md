@@ -36,6 +36,7 @@ The simple tool that is the [Instagram](https://www.instagram.com/) followers tr
 $ stack exec igmng -- --help
 Usage: igmng [-n|--no-fetch] [--enable-line-notify] [--env-file-path <filepath>]
              [--credentials-file-path <filepath>] [--limit <delete log number>]
+             [--router-hostname <hostname>] [--db-hostname <hostname>]
              [--year-ago yyyy] COMMAND
   instagram followers logger
 
@@ -68,8 +69,7 @@ MYSQL_ROOT_PASSWORD=rootpassword
 MYSQL_USER=username
 MYSQL_PASSWORD=userpassword
 EOS
-$ mkdir -p ~/.igmng/
-$ cat > ~/.igmng/credentials.toml <<EOS
+$ cat > credentials.toml <<EOS
 [credentials]
 oath_key = "oath_key" # when you use two-factor code, it will be used by authentication.
 user_id = "user_id"
@@ -79,9 +79,7 @@ password = "password"
 oauth_key = "line notify api oauth key"
 EOS
 $ cd ./containers
-$ docker-compose up -d && cd ../
-$ stack exec igmng -- fetch
-$ stack exec igmng -- check --enable-line-notify
+$ docker-compose up -d
 ```
 
 When unfollow is detected,

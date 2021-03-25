@@ -33,7 +33,7 @@ RUN apt-get -qq update && apt-get install -y -qq --no-install-recommends tzdata 
  && rm -rf $PYENV_ROOT \
  && groupadd -g 61000 igmng \
  && useradd -g 61000 -l -m -s /bin/bash -u 61000 igmng \
- && mkdir -p /home/igmng/.igmng
+ && mkdir -p /home/igmng/.igmng \
  && chown -R igmng:igmng /home/igmng
 COPY --chown=igmng:igmng ./igrouter/requirements.txt /home/igmng
 COPY --chown=igmng:igmng ./credentials.toml /home/igmng/.igmng

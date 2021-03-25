@@ -8,17 +8,23 @@ services:
       - "../igrouter:/home/igmng/bin"
     ports:
       - "3000:3000"
+    expose:
+      - "3000"
     working_dir: /home/igmng/bin
     build:
       context: ../
       dockerfile: ./containers/igrouter_webserver/Dockerfile
     command: /bin/bash -c 'make run'
+    networks:
+      - igmng-net
   db:
     image: mysql:8.0
     tty: true
     container_name: roki-igmng-mysql
     ports:
       - "3306:3306"
+    expose:
+      - "3306"
     volumes:
       - ./db/init:/docker-entrypoint-initdb.d
       - ./db/data:/var/lib/mysql
@@ -28,3 +34,24 @@ services:
       MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
       MYSQL_USER: $MYSQL_USER
       MYSQL_PASSWORD: $MYSQL_PASSWORD
+    networks:
+      - igmng-net
+  cron:
+    image: roki/igmng-cron:1.0.0
+    container_name: roki-igmng-cron
+    tty: true
+    depends_on:
+      - router
+      - db
+    volumes:
+      - ./igmng_cron/crontab:/var/spool/cron/crontabs/root
+    build:
+      context: ../
+      dockerfile: ./containers/igmng_cron/Dockerfile
+    command: /bin/bash -c 'busybox crond -l 8 -L /dev/stderr -f'
+    networks:
+      - igmng-net
+
+networks:
+  igmng-net:
+    driver: bridge

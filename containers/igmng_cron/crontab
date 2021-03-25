@@ -1,0 +1,1 @@
+0	10,22	*	*	*	/root/bin/igmng check --enable-line-notify --env-file-path /root/.env --router-hostname roki-igmng-router --db-hostname roki-igmng-mysql
