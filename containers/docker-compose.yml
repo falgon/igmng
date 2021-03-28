@@ -51,6 +51,18 @@ services:
     command: /bin/bash -c 'busybox crond -l 8 -L /dev/stderr -f'
     networks:
       - igmng-net
+  grafana:
+    image: grafana/grafana
+    container_name: roki-igmng-grafana
+    volumes:
+      - ./grafana_data:/var/lib/grafana
+    environment:
+      GF_SERVER_HTTP_PORT: 3001
+    ports:
+      - 3001:3001
+    networks:
+      - igmng-net
+    user: "104"
 
 networks:
   igmng-net:

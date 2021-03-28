@@ -5,4 +5,5 @@ __pycache__
 *.pyc
 credentials.toml
 containers/db/data
+containers/grafana_data
 .env
