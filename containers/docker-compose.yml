@@ -63,6 +63,8 @@ services:
     networks:
       - igmng-net
     user: "104"
+    depends_on:
+      - db
 
 networks:
   igmng-net:
