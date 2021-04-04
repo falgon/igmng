@@ -13,7 +13,7 @@ import os
 
 app = Flask(__name__)
 RequestID(app)
-profile_jb = "profile.jb"
+profile_jb = "/tmp/igmng/profile.jb"
 
 
 def config_logger():
