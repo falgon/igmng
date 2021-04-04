@@ -36,7 +36,7 @@ def enter_ig() -> Profile:
     logger.info("Start login")
     profile = login()
     if profile.is_left():
-        logger.SetLevel(logging.ERROR)
+        logger.setLevel(logging.ERROR)
         logger.error(profile.from_left)
         exit(1)
     logger.info("Done login")
