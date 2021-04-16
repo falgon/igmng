@@ -36,6 +36,8 @@ services:
       MYSQL_PASSWORD: $MYSQL_PASSWORD
     networks:
       - igmng-net
+    cap_add:
+      - SYS_NICE
   cron:
     image: roki/igmng-cron:1.0.0
     container_name: roki-igmng-cron
