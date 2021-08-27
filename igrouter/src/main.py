@@ -64,13 +64,6 @@ def get_followers():
     result = {
         "followees_num": profile.followees,
         "followers_num": profile.followers,
-        "followees": [
-            {
-                "user_id": x.userid,
-                "name": x.username,
-            }
-            for x in profile.get_followees()
-        ],
         "followers": [
             {
                 "user_id": x.userid,
