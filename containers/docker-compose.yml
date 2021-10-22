@@ -50,7 +50,7 @@ services:
     build:
       context: ../
       dockerfile: ./containers/igmng_cron/Dockerfile
-    command: /bin/bash -c 'busybox crond -l 8 -L /dev/stderr -f'
+    command: busybox crond -l 8 -f -L /dev/stderr
     networks:
       - igmng-net
   grafana:
