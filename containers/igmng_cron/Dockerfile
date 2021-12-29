@@ -42,5 +42,6 @@ ENV LANG=ja_JP.UTF-8 \
 COPY --from=bin /root/dist /root/bin
 COPY ./containers/.env /root
 COPY ./credentials.toml /root/.igmng
+COPY --chown=root:root ./containers/igmng_cron/crontab /var/spool/cron/crontabs/root
 WORKDIR /root/bin
 ENV PATH $PATH:/root/bin
