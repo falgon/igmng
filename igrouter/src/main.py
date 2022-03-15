@@ -10,6 +10,7 @@ from gevent.pywsgi import WSGIServer
 import logging
 import joblib
 import os
+from pathlib import Path
 
 app = Flask(__name__)
 RequestID(app)
@@ -48,6 +49,7 @@ def get_profile() -> Profile:
         return joblib.load(profile_jb)
     else:
         profile = enter_ig()
+        Path(os.path.dirname(profile_jb)).mkdir(parents=True, exist_ok=True)
         joblib.dump(profile, profile_jb, compress=3)
         return profile
 
