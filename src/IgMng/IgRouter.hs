@@ -6,20 +6,22 @@ module IgMng.IgRouter (
   , requestFollowers
 ) where
 
-import           Control.Monad        (when)
+import           Control.Monad               (when)
 import           Data.Aeson
-import qualified Data.ByteString.Lazy as BL
-import           Data.Functor         ((<&>))
-import           Data.Maybe           (isNothing)
-import qualified Data.Text            as T
-import qualified Data.Text.Encoding   as T
-import           Data.Word            (Word64)
-import           Database.MySQL.Base  (MySQLValue (..))
-import           GHC.Generics         (Generic)
-import           IgMng.Database.Type  (MySQLType (..))
-import           IgMng.IO             (putStrLnErr)
-import           Network.HTTP.Simple  (getResponseBody, httpLbs, parseRequest,
-                                       setRequestPort)
+import qualified Data.ByteString.Lazy        as BL
+import           Data.Functor                ((<&>))
+import           Data.Maybe                  (isNothing)
+import qualified Data.Text                   as T
+import qualified Data.Text.Encoding          as T
+import           Data.Word                   (Word64)
+import           Database.MySQL.Base         (MySQLValue (..))
+import           GHC.Generics                (Generic)
+import           IgMng.Database.Type         (MySQLType (..))
+import           IgMng.IO                    (putStrLnErr)
+import           Network.HTTP.Client.Conduit (responseTimeoutNone)
+import           Network.HTTP.Simple         (getResponseBody, httpLbs,
+                                              parseRequest, setRequestPort,
+                                              setRequestResponseTimeout)
 
 data IgMngFollower = IgMngFollower {
     userId :: Word64
@@ -67,7 +69,7 @@ instance MySQLType IgMngResp where
 requestFollowers :: String -> Int -> IO (Maybe IgMngResp)
 requestFollowers host port = do
     resp <- parseRequest ("http://" <> host <> "/followers")
-        >>= httpLbs . setRequestPort port
+        >>= httpLbs . setRequestPort port . setRequestResponseTimeout responseTimeoutNone
         <&> decode . getResponseBody
     when (isNothing resp) $ putStrLnErr "igmng.requestFollowers: json parse error"
     pure resp
