@@ -23,7 +23,7 @@ services:
     tty: true
     container_name: roki-igmng-mysql
     ports:
-      - "127.0.0.1:3306:3306"
+      - "${IP}:3306:3306"
     expose:
       - "3306"
     volumes:
