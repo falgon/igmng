@@ -136,15 +136,13 @@ optsParser homeDir = OA.info (OA.helper <*> programOptions homeDir) $ mconcat [
   , OA.progDesc "instagram followers logger"
   ]
 
-registerLog :: MySQLConn -> String -> IO Bool
-registerLog conn host = isJust <$> runMaybeT registerLog'
-    where
-        registerLog' = do
-            rqRes <- MaybeT $ requestFollowers host 3000
-            gotTime <- lift getCurrentLocalTime
-            oar <- lift (okAffectedRows <$> insertLog conn gotTime rqRes)
-            when (oar /= 1) $
-                lift (putStrLnErr "igmng.registerLog: failed to register followers") >> mzero
+registerLog :: MySQLConn -> String -> IO ()
+registerLog conn host = do
+    rqRes <- requestFollowers host 3000
+    gotTime <- getCurrentLocalTime
+    oar <- okAffectedRows <$> insertLog conn gotTime rqRes
+    when (oar /= 1) $
+        putStrLnErr "igmng.registerLog: failed to register followers" >> mzero
 
 main' :: Opts -> MySQLConn -> IO ()
 main' opts conn = case optCmd opts of
@@ -161,10 +159,11 @@ main' opts conn = case optCmd opts of
                         >> mapM_ T.putStrLn onlySecond
                         >> when (optEnableLineNotify opts)
                             (unlessM (notifyLine (optCredentialsFilePath opts) onlySecond) exitFailure)
-        | otherwise -> whenM (registerLog conn $ optIgMngRouterHostName opts) $ main' (opts { optNoFetch = True }) conn
+        | otherwise -> registerLog conn (optIgMngRouterHostName opts)
+            >> main' (opts { optNoFetch = True }) conn
     CmdFetch -> unless (optNoFetch opts)
-        $ whenM (registerLog conn $ optIgMngRouterHostName opts)
-        $ putStrLn "igmng.main': fetch complete"
+        $ registerLog conn (optIgMngRouterHostName opts)
+            >> putStrLn "igmng.main': fetch complete"
     CmdDelete
         | isJust (optYearAgo opts) -> currentTimeYearAgo (fromJust $ optYearAgo opts)
             >>= deleteLogWithYearAgo conn (optLimitNum opts)

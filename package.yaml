@@ -42,6 +42,7 @@ dependencies:
 - filepath
 - unordered-containers
 - network
+- safe-exceptions
 
 library:
   source-dirs: src

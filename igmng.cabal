@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 90b5cee520295e1006ae602db9c1414b98bc3ca8405dffd712b950b748bc0a42
+-- hash: a7a1634c0b6e3b6e472eff630e18eb275f4077fd2da1868349db66d98f039b8a
 
 name:           igmng
 version:        0.1.0.0
@@ -55,6 +55,7 @@ library
     , mysql-haskell
     , natural-transformation
     , network
+    , safe-exceptions
     , text
     , time
     , transformers
@@ -88,6 +89,7 @@ executable igmng
     , natural-transformation
     , network
     , optparse-applicative
+    , safe-exceptions
     , text
     , time
     , transformers
@@ -121,6 +123,7 @@ test-suite igmng-test
     , mysql-haskell
     , natural-transformation
     , network
+    , safe-exceptions
     , text
     , time
     , transformers

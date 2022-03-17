@@ -6,7 +6,10 @@ module IgMng.IgRouter (
   , requestFollowers
 ) where
 
+import           Control.Arrow               ((|||))
+import           Control.Exception.Safe      (MonadThrow, throwString)
 import           Control.Monad               (when)
+import           Control.Monad.IO.Class      (MonadIO (..))
 import           Data.Aeson
 import qualified Data.ByteString.Lazy        as BL
 import           Data.Functor                ((<&>))
@@ -66,10 +69,10 @@ instance ToJSON IgMngResp where
 instance MySQLType IgMngResp where
     toMySQLV = MySQLText . T.decodeUtf8 . BL.toStrict . encode
 
-requestFollowers :: String -> Int -> IO (Maybe IgMngResp)
-requestFollowers host port = do
-    resp <- parseRequest ("http://" <> host <> "/followers")
-        >>= httpLbs . setRequestPort port . setRequestResponseTimeout responseTimeoutNone
-        <&> decode . getResponseBody
-    when (isNothing resp) $ putStrLnErr "igmng.requestFollowers: json parse error"
-    pure resp
+requestFollowers :: (MonadThrow m, MonadIO m)
+    => String
+    -> Int
+    -> m IgMngResp
+requestFollowers host port = parseRequest ("http://" <> host <> "/followers")
+    >>= liftIO . httpLbs . setRequestPort port . setRequestResponseTimeout responseTimeoutNone
+    >>= (throwString ||| pure) . eitherDecode . getResponseBody
