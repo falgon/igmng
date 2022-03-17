@@ -12,6 +12,7 @@ import           Control.Monad               (when)
 import           Control.Monad.IO.Class      (MonadIO (..))
 import           Data.Aeson
 import qualified Data.ByteString.Lazy        as BL
+import qualified Data.ByteString.Lazy.Char8  as BLC
 import           Data.Functor                ((<&>))
 import           Data.Maybe                  (isNothing)
 import qualified Data.Text                   as T
@@ -73,6 +74,10 @@ requestFollowers :: (MonadThrow m, MonadIO m)
     => String
     -> Int
     -> m IgMngResp
-requestFollowers host port = parseRequest ("http://" <> host <> "/followers")
-    >>= liftIO . httpLbs . setRequestPort port . setRequestResponseTimeout responseTimeoutNone
-    >>= (throwString ||| pure) . eitherDecode . getResponseBody
+requestFollowers host port = do
+    resp <- parseRequest ("http://" <> host <> "/followers")
+        >>= liftIO . httpLbs . setRequestPort port . setRequestResponseTimeout responseTimeoutNone
+    let x = eitherDecode $ getResponseBody resp in
+        case x of
+            Left a  -> throwString $ (BLC.unpack $ getResponseBody resp) <> "\n" <> a
+            Right x -> pure x
