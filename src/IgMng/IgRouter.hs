@@ -23,8 +23,9 @@ import           GHC.Generics                (Generic)
 import           IgMng.Database.Type         (MySQLType (..))
 import           IgMng.IO                    (putStrLnErr)
 import           Network.HTTP.Client.Conduit (responseTimeoutNone)
-import           Network.HTTP.Simple         (getResponseBody, httpLbs,
-                                              parseRequest, setRequestPort,
+import           Network.HTTP.Simple         (Response, getResponseBody,
+                                              httpLbs, parseRequest,
+                                              setRequestPort,
                                               setRequestResponseTimeout)
 
 data IgMngFollower = IgMngFollower {
@@ -70,14 +71,21 @@ instance ToJSON IgMngResp where
 instance MySQLType IgMngResp where
     toMySQLV = MySQLText . T.decodeUtf8 . BL.toStrict . encode
 
+bodyDecode :: MonadThrow m
+    => Response BLC.ByteString
+    -> m IgMngResp
+bodyDecode resp = (f ||| pure) $ eitherDecode $ getResponseBody resp
+    where
+        f msg = throwString $ mconcat [
+            BLC.unpack $ getResponseBody resp
+          , "\n"
+          , msg
+          ]
+
 requestFollowers :: (MonadThrow m, MonadIO m)
     => String
     -> Int
     -> m IgMngResp
-requestFollowers host port = do
-    resp <- parseRequest ("http://" <> host <> "/followers")
-        >>= liftIO . httpLbs . setRequestPort port . setRequestResponseTimeout responseTimeoutNone
-    let x = eitherDecode $ getResponseBody resp in
-        case x of
-            Left a  -> throwString $ (BLC.unpack $ getResponseBody resp) <> "\n" <> a
-            Right x -> pure x
+requestFollowers host port = parseRequest ("http://" <> host <> "/followers")
+    >>= liftIO . httpLbs . setRequestPort port . setRequestResponseTimeout responseTimeoutNone
+    >>= bodyDecode
